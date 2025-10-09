@@ -200,7 +200,7 @@
 
       // Europe inset - off southeast coast
       const europe=insets.append("g");
-      const layoutEU={x0:740,y0:320,x1:970,y1:520,title:"Europe"};
+      const layoutEU={x0:840,y0:320,x1:1070,y1:520,title:"Europe"};
       europe.append("rect").attr("class","inset-box").attr("x",layoutEU.x0).attr("y",layoutEU.y0)
         .attr("width",layoutEU.x1-layoutEU.x0).attr("height",layoutEU.y1-layoutEU.y0);
       europe.append("text").attr("class","inset-title").attr("x",layoutEU.x0+8).attr("y",layoutEU.y0+16).text(layoutEU.title);
@@ -231,7 +231,7 @@
 
       // Puerto Rico inset
       const pr=insets.append("g");
-      const layoutPR={x0:720,y0:530,x1:940,y1:600,title:"Puerto Rico"};
+      const layoutPR={x0:720,y0:600,x1:940,y1:670,title:"Puerto Rico"};
       pr.append("rect").attr("class","inset-box").attr("x",layoutPR.x0).attr("y",layoutPR.y0)
         .attr("width",layoutPR.x1-layoutPR.x0).attr("height",layoutPR.y1-layoutPR.y0);
       pr.append("text").attr("class","inset-title").attr("x",layoutPR.x0+8).attr("y",layoutPR.y0+16).text(layoutPR.title);
