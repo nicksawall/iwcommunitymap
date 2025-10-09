@@ -12,38 +12,33 @@
 
     /* IW Brand Palette */
     :root{
-      --black:#000000;
       --paperwork:#E6E6E1;
       --olive:#4A5E41;
       --gunmetal:#585C5E;
       --sandstorm:#BBA854;
-      --fieldgreen:#3B7A57;
       --deepsea:#2D409F;
       --goldstar:#E6B300;
-      --crimson:#B60000;
-
-      --bg:var(--black);
-      --panel:#111;
-      --text:var(--paperwork);
-      --muted:#cfcfcf;
-
+      --background:#FFFFFF;
+      --panel:#FFFFFF;
+      --text:#1E1E1E;
+      --muted:#444;
       --state:var(--olive);
       --state-hover:var(--deepsea);
       --stroke:var(--gunmetal);
       --stroke-strong:var(--goldstar);
       --focus:var(--goldstar);
       --link:var(--goldstar);
-      --link-hover:#ffd34d;
+      --link-hover:#d4a200;
     }
 
-    /* Base */
     body{
       margin:0;
-      background:var(--bg);
+      background:var(--background);
       color:var(--text);
       font-family:'Sofia Sans',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
       -webkit-font-smoothing:antialiased;
     }
+
     a{color:var(--link);text-decoration:none}
     a:hover{color:var(--link-hover);text-decoration:underline}
 
@@ -51,15 +46,19 @@
     h1{
       margin:0 0 6px;
       font-weight:800;
-      font-size:2rem; /* Sofia Sans */
+      font-size:2rem;
+      color:var(--olive);
     }
     p.helper{margin:0 0 16px;color:var(--muted);font-family:'Lambada',sans-serif}
 
     .map-wrap{
-      position:relative;background:var(--panel);
-      border-radius:16px;padding:14px;
-      box-shadow:0 8px 28px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.03);
+      position:relative;
+      background:var(--panel);
+      border-radius:16px;
+      padding:14px;
+      box-shadow:0 6px 20px rgba(0,0,0,.12);
     }
+
     svg{width:100%;height:auto;display:block;border-radius:10px}
 
     .state,.inset-geom{
@@ -69,55 +68,70 @@
       cursor:pointer;
       transition:fill .14s ease, stroke .14s ease;
     }
-    .state:hover,.state:focus,
-    .inset-geom:hover,.inset-geom:focus{
+    .state:hover,.inset-geom:hover{
       fill:var(--state-hover);
       stroke:var(--stroke-strong);
-      outline:none;
     }
+
     .inset-box{
-      fill:rgba(255,255,255,.02);
-      stroke:rgba(255,255,255,.15);
-      stroke-width:.8;
+      fill:rgba(74,94,65,.05);
+      stroke:var(--olive);
+      stroke-width:1;
     }
     .inset-title{
       font-size:12px;
-      fill:var(--paperwork);
+      fill:var(--olive);
       opacity:.85;
-      pointer-events:none;
+      font-family:'Lambada',sans-serif;
     }
+
     .state:focus-visible,.inset-geom:focus-visible{
-      filter:drop-shadow(0 0 .5px var(--focus)) drop-shadow(0 0 7px var(--focus));
+      filter:drop-shadow(0 0 1px var(--focus)) drop-shadow(0 0 7px var(--focus));
+      outline:none;
     }
 
     .tip{
-      position:absolute;pointer-events:none;background:rgba(15,23,42,.96);
-      color:#fff;padding:6px 8px;border-radius:6px;font-size:12px;
-      transform:translate(-50%,-120%);white-space:nowrap;opacity:0;
-      transition:opacity .12s ease;border:1px solid rgba(255,255,255,.12);
+      position:absolute;
+      pointer-events:none;
+      background:rgba(15,23,42,.95);
+      color:#fff;
+      padding:6px 8px;
+      border-radius:6px;
+      font-size:12px;
+      transform:translate(-50%,-120%);
+      white-space:nowrap;
+      opacity:0;
+      transition:opacity .12s ease;
+      border:1px solid rgba(255,255,255,.12);
     }
 
-    .note{color:var(--muted);font-size:.9rem;margin-top:10px}
-
-    /* Directory lists */
+    /* Directory */
     .directory{margin:22px 0 0;display:grid;gap:24px;}
     .dir-section h2{
-      margin:0 0 8px;font-size:1.05rem;font-weight:700;color:var(--paperwork);
-      border-left:4px solid var(--sandstorm);padding-left:8px;
+      margin:0 0 8px;
+      font-size:1.05rem;
+      font-weight:700;
+      color:var(--olive);
+      border-left:4px solid var(--sandstorm);
+      padding-left:8px;
     }
     .dir-grid{
-      display:grid;gap:8px 18px;
+      display:grid;
+      gap:8px 18px;
       grid-template-columns:repeat(2,minmax(0,1fr));
     }
     @media (min-width:640px){.dir-grid{grid-template-columns:repeat(3,1fr)}}
     @media (min-width:900px){.dir-grid{grid-template-columns:repeat(4,1fr)}}
     .dir-grid a{
-      padding:6px 8px;border-radius:6px;background:rgba(255,255,255,.03);
-      border:1px solid rgba(255,255,255,.06);
+      padding:6px 8px;
+      border-radius:6px;
+      background:rgba(74,94,65,.06);
+      border:1px solid rgba(74,94,65,.12);
       transition:background .12s ease,border-color .12s ease;
     }
     .dir-grid a:hover{
-      background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.18);
+      background:rgba(74,94,65,.12);
+      border-color:rgba(74,94,65,.24);
     }
   </style>
 </head>
@@ -126,17 +140,11 @@
     <h1>Find your state</h1>
     <p class="helper">Find your state or OCONUS chapter to open its landing page.</p>
 
-    <div class="map-wrap" id="mapWrap" aria-label="Clickable U.S. map with OCONUS insets">
-      <div class="tip" id="tip" role="status" aria-live="polite"></div>
-      <!-- Extended height to fit Europe + Puerto Rico insets -->
-      <svg id="usMap" viewBox="0 0 975 740" role="img" aria-labelledby="title desc">
-        <title id="title">USA map with Europe & Puerto Rico insets</title>
-        <desc id="desc">Click states or OCONUS insets to open Irreverent Warriors DonorDrive pages.</desc>
-      </svg>
-      <p class="note">Links go to <code>https://irreverentwarriors.donordrive.com/&lt;name&gt;</code> (e.g., <code>northcarolina</code>, <code>puertorico</code>).</p>
+    <div class="map-wrap" id="mapWrap">
+      <div class="tip" id="tip"></div>
+      <svg id="usMap" viewBox="0 0 975 610"></svg>
     </div>
 
-    <!-- Directory lists -->
     <div class="directory" id="directory">
       <section class="dir-section">
         <h2>States</h2>
@@ -149,213 +157,100 @@
     </div>
   </div>
 
-  <!-- D3 + TopoJSON -->
   <script src="https://unpkg.com/d3@7"></script>
   <script src="https://unpkg.com/topojson-client@3"></script>
 
   <script>
-    // ---------- CONFIG ----------
-    const BASE = "https://irreverentwarriors.donordrive.com";
-    const OPEN_IN_NEW_TAB = true;
-
-    const OCONUS = [
-      { name: "England", slug: "england" },
-      { name: "France",  slug: "france"  },
-      { name: "Germany", slug: "germany" },
-      { name: "Puerto Rico", slug: "puertorico" }
+    const BASE="https://irreverentwarriors.donordrive.com";
+    const OPEN_IN_NEW_TAB=true;
+    const OCONUS=[
+      {name:"England",slug:"england"},
+      {name:"France",slug:"france"},
+      {name:"Germany",slug:"germany"},
+      {name:"Puerto Rico",slug:"puertorico"}
     ];
 
-    const FIFTY_STATES = [
-      "Alabama","Alaska","Arizona","Arkansas","California","Colorado","Connecticut","Delaware","Florida","Georgia",
-      "Hawaii","Idaho","Illinois","Indiana","Iowa","Kansas","Kentucky","Louisiana","Maine","Maryland",
-      "Massachusetts","Michigan","Minnesota","Mississippi","Missouri","Montana","Nebraska","Nevada","New Hampshire","New Jersey",
-      "New Mexico","New York","North Carolina","North Dakota","Ohio","Oklahoma","Oregon","Pennsylvania","Rhode Island","South Carolina",
-      "South Dakota","Tennessee","Texas","Utah","Vermont","Virginia","Washington","West Virginia","Wisconsin","Wyoming"
-    ];
+    const FIFTY_STATES=["Alabama","Alaska","Arizona","Arkansas","California","Colorado","Connecticut","Delaware","Florida","Georgia",
+    "Hawaii","Idaho","Illinois","Indiana","Iowa","Kansas","Kentucky","Louisiana","Maine","Maryland","Massachusetts","Michigan",
+    "Minnesota","Mississippi","Missouri","Montana","Nebraska","Nevada","New Hampshire","New Jersey","New Mexico","New York",
+    "North Carolina","North Dakota","Ohio","Oklahoma","Oregon","Pennsylvania","Rhode Island","South Carolina","South Dakota",
+    "Tennessee","Texas","Utah","Vermont","Virginia","Washington","West Virginia","Wisconsin","Wyoming"];
 
-    const slugify = s => s.toLowerCase().replace(/&/g,"and").replace(/[^a-z0-9]/g,"");
+    const slugify=s=>s.toLowerCase().replace(/&/g,"and").replace(/[^a-z0-9]/g,"");
+    const tip=document.getElementById("tip"),wrap=document.getElementById("mapWrap");
+    const svg=d3.select("#usMap"),main=svg.append("g"),insets=svg.append("g");
+    const go=url=>OPEN_IN_NEW_TAB?window.open(url,"_blank","noopener"):window.location.href=url;
+    const offsets=e=>{const r=wrap.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};};
+    const projUS=d3.geoAlbersUsa().translate([487.5,305]).scale(1280);
+    const pathUS=d3.geoPath(projUS);
 
-    const tip = document.getElementById("tip");
-    const wrap = document.getElementById("mapWrap");
-    const svg = d3.select("#usMap");
-    const mainGroup = svg.append("g").attr("id","mainUS");
-    const insetsGroup = svg.append("g").attr("id","insets");
-
-    const go = url => OPEN_IN_NEW_TAB ? window.open(url,"_blank","noopener") : (window.location.href=url);
-    const offsets = evt => {
-      if (typeof evt.offsetX === "number") return {x:evt.offsetX,y:evt.offsetY};
-      const r = wrap.getBoundingClientRect();
-      return {x:evt.clientX - r.left, y:evt.clientY - r.top};
-    };
-
-    // Layout for insets (positions within the 975x740 viewBox)
-    const insetLayout = {
-      europe: { x0: 25,  y0: 625, x1: 525, y1: 730, title: "Europe" },   // wide box for three countries
-      prico:  { x0: 545, y0: 625, x1: 945, y1: 730, title: "Puerto Rico" }
-    };
-
-    // Projections
-    const projUS = d3.geoAlbersUsa().translate([487.5, 305]).scale(1280);
-    const pathUS = d3.geoPath(projUS);
-
-    // Utility: filter France to "mainland" only (drop Corsica, DOM-TOM, etc.)
-    function mainlandFranceGeometry(feature) {
-      // Mainland rough bbox: lon [-5, 8], lat [41, 52]
-      const inMainland = ([lon, lat]) => lon >= -5 && lon <= 8 && lat >= 41 && lat <= 52;
-
-      const geom = feature.geometry;
-      if (!geom) return feature;
-
-      function ringCentroid(coords){
-        // simple average (ok for small polygons)
-        let x=0,y=0,n=coords.length;
-        coords.forEach(([lon,lat])=>{x+=lon;y+=lat;});
-        return [x/n, y/n];
-      }
-
-      if (geom.type === "Polygon") {
-        const c = ringCentroid(geom.coordinates[0]);
-        return inMainland(c) ? feature : null;
-      }
-      if (geom.type === "MultiPolygon") {
-        const kept = geom.coordinates.filter(poly => {
-          const c = ringCentroid(poly[0]);
-          return inMainland(c);
-        });
-        if (!kept.length) return null;
-        return { type:"Feature", properties: feature.properties, geometry:{ type:"MultiPolygon", coordinates: kept } };
-      }
-      // If some other geometry type, return null to be safe
-      return null;
-    }
-
-    // Load datasets
     Promise.all([
       fetch("https://unpkg.com/us-atlas@3/states-10m.json").then(r=>r.json()),
       fetch("https://unpkg.com/world-atlas@2/countries-110m.json").then(r=>r.json())
-    ]).then(([usTopo, worldCountriesTopo]) => {
-      // ----- Main US map -----
-      const statesAll = topojson.feature(usTopo, usTopo.objects.states).features
-        .filter(f => FIFTY_STATES.includes(f.properties.name));
+    ]).then(([us,world])=>{
+      const states=topojson.feature(us,us.objects.states).features.filter(f=>FIFTY_STATES.includes(f.properties.name));
+      main.selectAll("path").data(states).join("path")
+        .attr("class","state").attr("d",pathUS)
+        .on("click",(_,d)=>go(`${BASE}/${slugify(d.properties.name)}`))
+        .on("mousemove",(e,d)=>{const {x,y}=offsets(e);tip.textContent=d.properties.name;tip.style.left=x+"px";tip.style.top=y+"px";tip.style.opacity=1;})
+        .on("mouseleave",()=>tip.style.opacity=0);
 
-      mainGroup.append("g")
-        .selectAll("path")
-        .data(statesAll)
-        .join("path")
-        .attr("class","state")
-        .attr("d", d => pathUS(d))
-        .attr("tabindex", 0)
-        .attr("role","link")
-        .attr("aria-label", d => d.properties.name)
-        .on("click", (_, d) => go(`${BASE}/${slugify(d.properties.name)}`))
-        .on("keydown", (e, d) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(`${BASE}/${slugify(d.properties.name)}`);} })
-        .on("mousemove", (e,d) => { const {x,y} = offsets(e); tip.textContent = d.properties.name; tip.style.left = x + "px"; tip.style.top = y + "px"; tip.style.opacity = 1; })
-        .on("mouseleave", () => tip.style.opacity = 0);
+      const mesh=topojson.mesh(us,us.objects.states,(a,b)=>a!==b);
+      main.append("path").attr("fill","none").attr("stroke","#BBA854").attr("stroke-width",.7).attr("d",pathUS(mesh));
 
-      // Draw crisp internal borders
-      const mesh = topojson.mesh(usTopo, usTopo.objects.states, (a,b) => a !== b);
-      mainGroup.append("path")
-        .attr("fill","none")
-        .attr("stroke", getComputedStyle(document.documentElement).getPropertyValue('--sandstorm').trim() || "#BBA854")
-        .attr("stroke-width", .7)
-        .attr("pointer-events","none")
-        .attr("d", d3.geoPath(projUS)(mesh));
+      // Europe inset - off southeast coast
+      const europe=insets.append("g");
+      const layoutEU={x0:630,y0:300,x1:950,y1:500,title:"Europe"};
+      europe.append("rect").attr("class","inset-box").attr("x",layoutEU.x0).attr("y",layoutEU.y0)
+        .attr("width",layoutEU.x1-layoutEU.x0).attr("height",layoutEU.y1-layoutEU.y0);
+      europe.append("text").attr("class","inset-title").attr("x",layoutEU.x0+8).attr("y",layoutEU.y0+16).text(layoutEU.title);
 
-      // ----- OCONUS Insets -----
-      const countries = topojson.feature(worldCountriesTopo, worldCountriesTopo.objects.countries).features;
-
-      // Helper to pick countries by common "name" keys
-      const getName = f => (f.properties && (f.properties.name || f.properties.NAME || f.properties.admin)) || "";
-      const byNames = names => countries.filter(f => names.includes(getName(f)));
-
-      // Europe inset
-      const europe = insetsGroup.append("g").attr("id","inset-europe");
-      (function drawEurope(){
-        const layout = insetLayout.europe;
-        // Frame & title
-        europe.append("rect").attr("class","inset-box").attr("x",layout.x0).attr("y",layout.y0).attr("width",layout.x1-layout.x0).attr("height",layout.y1-layout.y0);
-        europe.append("text").attr("class","inset-title").attr("x",layout.x0+8).attr("y",layout.y0+16).text(layout.title);
-
-        // Target countries
-        let targets = byNames(["United Kingdom","France","Germany"]).map(f => {
-          let label = getName(f)==="United Kingdom" ? "England" : getName(f);
-          // For France: strip non-mainland parts
-          if (label==="France") {
-            const mf = mainlandFranceGeometry(f);
-            if (mf) f = mf; else return null;
+      const countries=topojson.feature(world,world.objects.countries).features;
+      const getName=f=>(f.properties?.name||f.properties?.NAME||f.properties?.admin)||"";
+      const picks=["United Kingdom","France","Germany"];
+      const targets=countries.filter(f=>picks.includes(getName(f))).map(f=>{
+        let name=getName(f)==="United Kingdom"?"England":getName(f);
+        if(name==="France"){
+          const geom=f.geometry;
+          if(geom.type==="MultiPolygon"){
+            geom.coordinates=geom.coordinates.filter(poly=>{
+              const avg=poly[0].reduce((a,b)=>[a[0]+b[0],a[1]+b[1]],[0,0]).map(v=>v/poly[0].length);
+              return avg[0]>-5&&avg[0]<8&&avg[1]>41&&avg[1]<52;
+            });
           }
-          return { geom: f, label, slug: slugify(label) };
-        }).filter(Boolean);
-
-        const fc = { type:"FeatureCollection", features: targets.map(t=>t.geom) };
-        const projEU = d3.geoMercator().fitExtent([[layout.x0+6, layout.y0+20], [layout.x1-6, layout.y1-6]], fc);
-        const pathEU = d3.geoPath(projEU);
-
-        europe.selectAll("path.country")
-          .data(targets)
-          .join("path")
-          .attr("class","inset-geom")
-          .attr("d", d => pathEU(d.geom))
-          .attr("tabindex", 0)
-          .attr("role","link")
-          .attr("aria-label", d => d.label)
-          .on("click", (_, d) => go(`${BASE}/${d.slug}`))
-          .on("keydown", (e, d) => { if (e.key==="Enter"||e.key===" "){ e.preventDefault(); go(`${BASE}/${d.slug}`);} })
-          .on("mousemove", (e,d) => { const {x,y}=offsets(e); tip.textContent=d.label; tip.style.left=x+"px"; tip.style.top=y+"px"; tip.style.opacity=1; })
-          .on("mouseleave", () => tip.style.opacity=0);
-      })();
-
-      // Puerto Rico inset (from us-atlas states; already has PR)
-      const prFeature = topojson.feature(usTopo, usTopo.objects.states).features.find(f => f.properties && f.properties.name === "Puerto Rico");
-      (function drawPR(){
-        const layout = insetLayout.prico;
-        // Frame & title
-        const prG = insetsGroup.append("g").attr("id","inset-pr");
-        prG.append("rect").attr("class","inset-box").attr("x",layout.x0).attr("y",layout.y0).attr("width",layout.x1-layout.x0).attr("height",layout.y1-layout.y0);
-        prG.append("text").attr("class","inset-title").attr("x",layout.x0+8).attr("y",layout.y0+16).text(layout.title);
-
-        const fc = prFeature ? { type:"FeatureCollection", features:[prFeature] } : { type:"FeatureCollection", features:[] };
-        const projPR = d3.geoMercator().fitExtent([[layout.x0+6, layout.y0+20], [layout.x1-6, layout.y1-6]], fc.features.length?fc:{type:"FeatureCollection",features:[{type:"Feature",geometry:{type:"Point",coordinates:[-66.1,18.4]}}]});
-        const pathPR = d3.geoPath(projPR);
-
-        if (prFeature) {
-          prG.append("path")
-            .datum({ geom: prFeature, label: "Puerto Rico", slug: "puertorico" })
-            .attr("class","inset-geom")
-            .attr("d", d => pathPR(d.geom))
-            .attr("tabindex", 0)
-            .attr("role","link")
-            .attr("aria-label","Puerto Rico")
-            .on("click", () => go(`${BASE}/puertorico`))
-            .on("keydown", e => { if (e.key==="Enter"||e.key===" "){ e.preventDefault(); go(`${BASE}/puertorico`);} })
-            .on("mousemove", (e) => { const {x,y}=offsets(e); tip.textContent="Puerto Rico"; tip.style.left=x+"px"; tip.style.top=y+"px"; tip.style.opacity=1; })
-            .on("mouseleave", () => tip.style.opacity=0);
         }
-      })();
-
-      // Build directory lists
-      const statesList = document.getElementById("statesList");
-      FIFTY_STATES.forEach(n => {
-        const a = document.createElement("a");
-        a.textContent = n;
-        a.href = `${BASE}/${slugify(n)}`;
-        if (OPEN_IN_NEW_TAB) a.target = "_blank";
-        a.rel = "noopener";
-        statesList.appendChild(a);
+        return{name,geom:f.geometry};
       });
+      const fc={type:"FeatureCollection",features:targets.map(t=>({type:"Feature",geometry:t.geom}))};
+      const projEU=d3.geoMercator().fitExtent([[layoutEU.x0+8,layoutEU.y0+22],[layoutEU.x1-8,layoutEU.y1-8]],fc);
+      const pathEU=d3.geoPath(projEU);
+      europe.selectAll("path").data(targets).join("path").attr("class","inset-geom").attr("d",d=>pathEU({type:"Feature",geometry:d.geom}))
+        .on("click",(_,d)=>go(`${BASE}/${slugify(d.name)}`))
+        .on("mousemove",(e,d)=>{const {x,y}=offsets(e);tip.textContent=d.name;tip.style.left=x+"px";tip.style.top=y+"px";tip.style.opacity=1;})
+        .on("mouseleave",()=>tip.style.opacity=0);
 
-      const oconusList = document.getElementById("oconusList");
-      OCONUS.forEach(({name,slug}) => {
-        const a = document.createElement("a");
-        a.textContent = name;
-        a.href = `${BASE}/${slug}`;
-        if (OPEN_IN_NEW_TAB) a.target = "_blank";
-        a.rel = "noopener";
-        oconusList.appendChild(a);
-      });
-    }).catch(err => {
-      console.error(err);
-      alert("Failed to load map data. Please check your network and refresh.");
+      // Puerto Rico inset
+      const pr=insets.append("g");
+      const layoutPR={x0:620,y0:510,x1:900,y1:600,title:"Puerto Rico"};
+      pr.append("rect").attr("class","inset-box").attr("x",layoutPR.x0).attr("y",layoutPR.y0)
+        .attr("width",layoutPR.x1-layoutPR.x0).attr("height",layoutPR.y1-layoutPR.y0);
+      pr.append("text").attr("class","inset-title").attr("x",layoutPR.x0+8).attr("y",layoutPR.y0+16).text(layoutPR.title);
+      const prState=topojson.feature(us,us.objects.states).features.find(f=>f.properties.name==="Puerto Rico");
+      if(prState){
+        const fcPR={type:"FeatureCollection",features:[prState]};
+        const projPR=d3.geoMercator().fitExtent([[layoutPR.x0+6,layoutPR.y0+20],[layoutPR.x1-6,layoutPR.y1-6]],fcPR);
+        const pathPR=d3.geoPath(projPR);
+        pr.append("path").datum(prState).attr("class","inset-geom").attr("d",pathPR)
+          .on("click",()=>go(`${BASE}/puertorico`))
+          .on("mousemove",(e)=>{const {x,y}=offsets(e);tip.textContent="Puerto Rico";tip.style.left=x+"px";tip.style.top=y+"px";tip.style.opacity=1;})
+          .on("mouseleave",()=>tip.style.opacity=0);
+      }
+
+      // Directory lists
+      const statesList=document.getElementById("statesList");
+      FIFTY_STATES.forEach(n=>{const a=document.createElement("a");a.textContent=n;a.href=`${BASE}/${slugify(n)}`;if(OPEN_IN_NEW_TAB)a.target="_blank";a.rel="noopener";statesList.appendChild(a);});
+      const oconusList=document.getElementById("oconusList");
+      OCONUS.forEach(({name,slug})=>{const a=document.createElement("a");a.textContent=name;a.href=`${BASE}/${slug}`;if(OPEN_IN_NEW_TAB)a.target="_blank";a.rel="noopener";oconusList.appendChild(a);});
     });
   </script>
 </body>
