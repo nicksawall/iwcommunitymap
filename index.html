@@ -51,7 +51,7 @@
     h1{
       margin:0 0 6px;
       font-weight:800;
-      font-size:2rem; /* Sofia Sans as requested */
+      font-size:2rem; /* Sofia Sans */
     }
     p.helper{margin:0 0 16px;color:var(--muted);font-family:'Lambada',sans-serif}
 
@@ -86,14 +86,6 @@
       opacity:.85;
       pointer-events:none;
     }
-    .inset-point{
-      fill:var(--goldstar);
-      stroke:var(--stroke);
-      stroke-width:.8;
-      cursor:pointer;
-      transition:transform .12s ease;
-    }
-    .inset-point:hover{transform:scale(1.1)}
     .state:focus-visible,.inset-geom:focus-visible{
       filter:drop-shadow(0 0 .5px var(--focus)) drop-shadow(0 0 7px var(--focus));
     }
@@ -134,14 +126,14 @@
     <h1>Find your state</h1>
     <p class="helper">Find your state or OCONUS chapter to open its landing page.</p>
 
-    <div class="map-wrap" id="mapWrap" aria-label="Clickable U.S. and OCONUS map">
+    <div class="map-wrap" id="mapWrap" aria-label="Clickable U.S. map with OCONUS insets">
       <div class="tip" id="tip" role="status" aria-live="polite"></div>
+      <!-- Extended height to fit Europe + Puerto Rico insets -->
       <svg id="usMap" viewBox="0 0 975 740" role="img" aria-labelledby="title desc">
-        <title id="title">USA map with OCONUS insets</title>
+        <title id="title">USA map with Europe & Puerto Rico insets</title>
         <desc id="desc">Click states or OCONUS insets to open Irreverent Warriors DonorDrive pages.</desc>
-        <!-- Main US map fits in ~975x610; we extend height for insets row -->
       </svg>
-      <p class="note">Links go to <code>https://irreverentwarriors.donordrive.com/&lt;name&gt;</code> (e.g., <code>northcarolina</code>, <code>guam</code>).</p>
+      <p class="note">Links go to <code>https://irreverentwarriors.donordrive.com/&lt;name&gt;</code> (e.g., <code>northcarolina</code>, <code>puertorico</code>).</p>
     </div>
 
     <!-- Directory lists -->
@@ -168,11 +160,9 @@
 
     const OCONUS = [
       { name: "England", slug: "england" },
-      { name: "France", slug: "france" },
+      { name: "France",  slug: "france"  },
       { name: "Germany", slug: "germany" },
-      { name: "Puerto Rico", slug: "puertorico" },
-      { name: "St Thomas", slug: "stthomas" },
-      { name: "Guam", slug: "guam" }
+      { name: "Puerto Rico", slug: "puertorico" }
     ];
 
     const FIFTY_STATES = [
@@ -200,21 +190,50 @@
 
     // Layout for insets (positions within the 975x740 viewBox)
     const insetLayout = {
-      europe: { x0: 25,  y0: 625, x1: 325, y1: 730, title: "Europe" },
-      carib:  { x0: 345, y0: 625, x1: 645, y1: 730, title: "Caribbean" },
-      pac:    { x0: 665, y0: 625, x1: 965, y1: 730, title: "Pacific" }
+      europe: { x0: 25,  y0: 625, x1: 525, y1: 730, title: "Europe" },   // wide box for three countries
+      prico:  { x0: 545, y0: 625, x1: 945, y1: 730, title: "Puerto Rico" }
     };
 
     // Projections
     const projUS = d3.geoAlbersUsa().translate([487.5, 305]).scale(1280);
     const pathUS = d3.geoPath(projUS);
 
-    // Load both US (states) and world (countries/land)
+    // Utility: filter France to "mainland" only (drop Corsica, DOM-TOM, etc.)
+    function mainlandFranceGeometry(feature) {
+      // Mainland rough bbox: lon [-5, 8], lat [41, 52]
+      const inMainland = ([lon, lat]) => lon >= -5 && lon <= 8 && lat >= 41 && lat <= 52;
+
+      const geom = feature.geometry;
+      if (!geom) return feature;
+
+      function ringCentroid(coords){
+        // simple average (ok for small polygons)
+        let x=0,y=0,n=coords.length;
+        coords.forEach(([lon,lat])=>{x+=lon;y+=lat;});
+        return [x/n, y/n];
+      }
+
+      if (geom.type === "Polygon") {
+        const c = ringCentroid(geom.coordinates[0]);
+        return inMainland(c) ? feature : null;
+      }
+      if (geom.type === "MultiPolygon") {
+        const kept = geom.coordinates.filter(poly => {
+          const c = ringCentroid(poly[0]);
+          return inMainland(c);
+        });
+        if (!kept.length) return null;
+        return { type:"Feature", properties: feature.properties, geometry:{ type:"MultiPolygon", coordinates: kept } };
+      }
+      // If some other geometry type, return null to be safe
+      return null;
+    }
+
+    // Load datasets
     Promise.all([
       fetch("https://unpkg.com/us-atlas@3/states-10m.json").then(r=>r.json()),
-      fetch("https://unpkg.com/world-atlas@2/countries-110m.json").then(r=>r.json()),
-      fetch("https://unpkg.com/world-atlas@2/land-110m.json").then(r=>r.json())
-    ]).then(([usTopo, worldCountriesTopo, worldLandTopo]) => {
+      fetch("https://unpkg.com/world-atlas@2/countries-110m.json").then(r=>r.json())
+    ]).then(([usTopo, worldCountriesTopo]) => {
       // ----- Main US map -----
       const statesAll = topojson.feature(usTopo, usTopo.objects.states).features
         .filter(f => FIFTY_STATES.includes(f.properties.name));
@@ -229,19 +248,8 @@
         .attr("role","link")
         .attr("aria-label", d => d.properties.name)
         .on("click", (_, d) => go(`${BASE}/${slugify(d.properties.name)}`))
-        .on("keydown", (e, d) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            go(`${BASE}/${slugify(d.properties.name)}`);
-          }
-        })
-        .on("mousemove", (e,d) => {
-          const {x,y} = offsets(e);
-          tip.textContent = d.properties.name;
-          tip.style.left = x + "px";
-          tip.style.top = y + "px";
-          tip.style.opacity = 1;
-        })
+        .on("keydown", (e, d) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(`${BASE}/${slugify(d.properties.name)}`);} })
+        .on("mousemove", (e,d) => { const {x,y} = offsets(e); tip.textContent = d.properties.name; tip.style.left = x + "px"; tip.style.top = y + "px"; tip.style.opacity = 1; })
         .on("mouseleave", () => tip.style.opacity = 0);
 
       // Draw crisp internal borders
@@ -254,130 +262,76 @@
         .attr("d", d3.geoPath(projUS)(mesh));
 
       // ----- OCONUS Insets -----
-      // Helpers for insets
-      const box = (layout, parent) => {
-        parent.append("rect")
-          .attr("class","inset-box")
-          .attr("x", layout.x0)
-          .attr("y", layout.y0)
-          .attr("width", layout.x1 - layout.x0)
-          .attr("height", layout.y1 - layout.y0);
-        parent.append("text")
-          .attr("class","inset-title")
-          .attr("x", layout.x0 + 8)
-          .attr("y", layout.y0 + 16)
-          .text(layout.title);
-      };
-      const fitProjection = (layout, fc) =>
-        d3.geoMercator().fitExtent([[layout.x0+6, layout.y0+20], [layout.x1-6, layout.y1-6]], fc);
-      const pathFor = proj => d3.geoPath(proj);
+      const countries = topojson.feature(worldCountriesTopo, worldCountriesTopo.objects.countries).features;
 
-      // ---- Europe inset: UK (for England), France, Germany ----
+      // Helper to pick countries by common "name" keys
+      const getName = f => (f.properties && (f.properties.name || f.properties.NAME || f.properties.admin)) || "";
+      const byNames = names => countries.filter(f => names.includes(getName(f)));
+
+      // Europe inset
       const europe = insetsGroup.append("g").attr("id","inset-europe");
-      box(insetLayout.europe, europe);
+      (function drawEurope(){
+        const layout = insetLayout.europe;
+        // Frame & title
+        europe.append("rect").attr("class","inset-box").attr("x",layout.x0).attr("y",layout.y0).attr("width",layout.x1-layout.x0).attr("height",layout.y1-layout.y0);
+        europe.append("text").attr("class","inset-title").attr("x",layout.x0+8).attr("y",layout.y0+16).text(layout.title);
 
-      const countries = topojson.feature(worldCountriesTopo, worldCountriesTopo.objects.countries);
-      // simple name lookup via a prebuilt map (world-atlas 110m uses numeric ids; we rely on external name map less here)
-      // We'll filter by approximate geometries using known ISO-ish centroid longitudes/lat windows:
-      // Instead, we derive by a rough bbox filter on Europe region then manually pick by name via a name property if available.
-      // Many bundles include a .properties.name — if absent for some builds, this still renders (click areas labeled with our target names).
+        // Target countries
+        let targets = byNames(["United Kingdom","France","Germany"]).map(f => {
+          let label = getName(f)==="United Kingdom" ? "England" : getName(f);
+          // For France: strip non-mainland parts
+          if (label==="France") {
+            const mf = mainlandFranceGeometry(f);
+            if (mf) f = mf; else return null;
+          }
+          return { geom: f, label, slug: slugify(label) };
+        }).filter(Boolean);
 
-      // Build a small helper by scanning property names when present:
-      const pickByName = (names) => {
-        const out = [];
-        for (const f of countries.features) {
-          const n = (f.properties && (f.properties.name || f.properties.NAME || f.properties.admin)) || "";
-          if (names.includes(n)) out.push(f);
-        }
-        return out;
-      };
-      let euTargets = pickByName(["United Kingdom","France","Germany"]);
-      // Fallback: if names not found (rare), just use an empty FeatureCollection
-      const euFC = { type:"FeatureCollection", features: euTargets };
-      const projEU = fitProjection(insetLayout.europe, euFC);
-      const pathEU = pathFor(projEU);
+        const fc = { type:"FeatureCollection", features: targets.map(t=>t.geom) };
+        const projEU = d3.geoMercator().fitExtent([[layout.x0+6, layout.y0+20], [layout.x1-6, layout.y1-6]], fc);
+        const pathEU = d3.geoPath(projEU);
 
-      europe.selectAll("path.country")
-        .data(euFC.features.map(f => {
-          const n = f.properties && (f.properties.name || f.properties.NAME || f.properties.admin);
-          let label = n === "United Kingdom" ? "England" : n;
-          let slug = slugify(label);
-          return { geom:f, label, slug };
-        }))
-        .join("path")
-        .attr("class","inset-geom")
-        .attr("d", d => pathEU(d.geom))
-        .attr("tabindex", 0)
-        .attr("role","link")
-        .attr("aria-label", d => d.label)
-        .on("click", (_, d) => go(`${BASE}/${d.slug}`))
-        .on("keydown", (e, d) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(`${BASE}/${d.slug}`);} })
-        .on("mousemove", (e,d) => { const {x,y}=offsets(e); tip.textContent=d.label; tip.style.left=x+"px"; tip.style.top=y+"px"; tip.style.opacity=1; })
-        .on("mouseleave", () => tip.style.opacity=0);
-
-      // ---- Caribbean inset: Puerto Rico (shape), St Thomas (point) ----
-      const carib = insetsGroup.append("g").attr("id","inset-carib");
-      box(insetLayout.carib, carib);
-
-      const statesExtra = topojson.feature(usTopo, usTopo.objects.states).features;
-      const pr = statesExtra.find(f => f.properties && f.properties.name === "Puerto Rico");
-      const prFC = { type:"FeatureCollection", features: pr ? [pr] : [] };
-      const projCarib = fitProjection(insetLayout.carib, prFC.features.length ? prFC : {type:"FeatureCollection",features:[{type:"Feature",geometry:{type:"Point",coordinates:[-66.1,18.4]}}]});
-      const pathCarib = pathFor(projCarib);
-
-      if (pr) {
-        carib.append("path")
-          .datum({ geom: pr, label: "Puerto Rico", slug: "puertorico" })
+        europe.selectAll("path.country")
+          .data(targets)
+          .join("path")
           .attr("class","inset-geom")
-          .attr("d", d => pathCarib(d.geom))
+          .attr("d", d => pathEU(d.geom))
           .attr("tabindex", 0)
           .attr("role","link")
-          .attr("aria-label","Puerto Rico")
-          .on("click", () => go(`${BASE}/puertorico`))
-          .on("keydown", e => { if (e.key==="Enter"||e.key===" "){ e.preventDefault(); go(`${BASE}/puertorico`);} })
-          .on("mousemove", (e) => { const {x,y}=offsets(e); tip.textContent="Puerto Rico"; tip.style.left=x+"px"; tip.style.top=y+"px"; tip.style.opacity=1; })
+          .attr("aria-label", d => d.label)
+          .on("click", (_, d) => go(`${BASE}/${d.slug}`))
+          .on("keydown", (e, d) => { if (e.key==="Enter"||e.key===" "){ e.preventDefault(); go(`${BASE}/${d.slug}`);} })
+          .on("mousemove", (e,d) => { const {x,y}=offsets(e); tip.textContent=d.label; tip.style.left=x+"px"; tip.style.top=y+"px"; tip.style.opacity=1; })
           .on("mouseleave", () => tip.style.opacity=0);
-      }
+      })();
 
-      // St Thomas approximate location (USVI; click as a dot)
-      const stThomasLonLat = [-64.93, 18.33];
-      const stt = projCarib(stThomasLonLat);
-      if (stt) {
-        carib.append("circle")
-          .attr("class","inset-point")
-          .attr("cx", stt[0]).attr("cy", stt[1]).attr("r", 4)
-          .attr("tabindex", 0)
-          .attr("role","link")
-          .attr("aria-label","St Thomas")
-          .on("click", () => go(`${BASE}/stthomas`))
-          .on("keydown", e => { if (e.key==="Enter"||e.key===" "){ e.preventDefault(); go(`${BASE}/stthomas`);} })
-          .on("mousemove", (e) => { const {x,y}=offsets(e); tip.textContent="St Thomas"; tip.style.left=x+"px"; tip.style.top=y+"px"; tip.style.opacity=1; })
-          .on("mouseleave", () => tip.style.opacity=0);
-      }
+      // Puerto Rico inset (from us-atlas states; already has PR)
+      const prFeature = topojson.feature(usTopo, usTopo.objects.states).features.find(f => f.properties && f.properties.name === "Puerto Rico");
+      (function drawPR(){
+        const layout = insetLayout.prico;
+        // Frame & title
+        const prG = insetsGroup.append("g").attr("id","inset-pr");
+        prG.append("rect").attr("class","inset-box").attr("x",layout.x0).attr("y",layout.y0).attr("width",layout.x1-layout.x0).attr("height",layout.y1-layout.y0);
+        prG.append("text").attr("class","inset-title").attr("x",layout.x0+8).attr("y",layout.y0+16).text(layout.title);
 
-      // ---- Pacific inset: Guam (point) ----
-      const pac = insetsGroup.append("g").attr("id","inset-pac");
-      box(insetLayout.pac, pac);
+        const fc = prFeature ? { type:"FeatureCollection", features:[prFeature] } : { type:"FeatureCollection", features:[] };
+        const projPR = d3.geoMercator().fitExtent([[layout.x0+6, layout.y0+20], [layout.x1-6, layout.y1-6]], fc.features.length?fc:{type:"FeatureCollection",features:[{type:"Feature",geometry:{type:"Point",coordinates:[-66.1,18.4]}}]});
+        const pathPR = d3.geoPath(projPR);
 
-      // A minimal land outline for context could be made from world land, but at 110m Guam is tiny;
-      // we focus on a clickable point.
-      const projPac = d3.geoMercator().fitExtent(
-        [[insetLayout.pac.x0+6, insetLayout.pac.y0+20], [insetLayout.pac.x1-6, insetLayout.pac.y1-6]],
-        { type:"FeatureCollection", features:[{type:"Feature",geometry:{type:"Point",coordinates:[144.7937,13.4443]}}] }
-      );
-      const gu = projPac([144.7937,13.4443]); // Guam
-      if (gu) {
-        pac.append("circle")
-          .attr("class","inset-point")
-          .attr("cx", gu[0]).attr("cy", gu[1]).attr("r", 4)
-          .attr("tabindex", 0)
-          .attr("role","link")
-          .attr("aria-label","Guam")
-          .on("click", () => go(`${BASE}/guam`))
-          .on("keydown", e => { if (e.key==="Enter"||e.key===" "){ e.preventDefault(); go(`${BASE}/guam`);} })
-          .on("mousemove", (e) => { const {x,y}=offsets(e); tip.textContent="Guam"; tip.style.left=x+"px"; tip.style.top=y+"px"; tip.style.opacity=1; })
-          .on("mouseleave", () => tip.style.opacity=0);
-      }
+        if (prFeature) {
+          prG.append("path")
+            .datum({ geom: prFeature, label: "Puerto Rico", slug: "puertorico" })
+            .attr("class","inset-geom")
+            .attr("d", d => pathPR(d.geom))
+            .attr("tabindex", 0)
+            .attr("role","link")
+            .attr("aria-label","Puerto Rico")
+            .on("click", () => go(`${BASE}/puertorico`))
+            .on("keydown", e => { if (e.key==="Enter"||e.key===" "){ e.preventDefault(); go(`${BASE}/puertorico`);} })
+            .on("mousemove", (e) => { const {x,y}=offsets(e); tip.textContent="Puerto Rico"; tip.style.left=x+"px"; tip.style.top=y+"px"; tip.style.opacity=1; })
+            .on("mouseleave", () => tip.style.opacity=0);
+        }
+      })();
 
       // Build directory lists
       const statesList = document.getElementById("statesList");
