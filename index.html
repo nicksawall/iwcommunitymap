@@ -4,220 +4,251 @@
   <meta charset="utf-8" />
   <title>Irreverent Warriors – State Map</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    /* =======================
-       BRAND COLORS & TYPOGRAPHY
-       ======================= */
-    @import url('https://fonts.googleapis.com/css2?family=Sofia+Sans:wght@400;600&display=swap');
-    @import url('https://fonts.googleapis.com/css2?family=Lambada:wght@400;700&display=swap');
-    @import url('https://fonts.googleapis.com/css2?family=Shantell+Sans:wght@700&display=swap'); /* temporary sub for Shara Stencil */
 
-    :root {
+  <style>
+    /* ===== Fonts ===== */
+    @import url('https://fonts.googleapis.com/css2?family=Sofia+Sans:wght@400;600;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Lambada:wght@400;700&display=swap');
+
+    /* ===== IW Brand Palette ===== */
+    :root{
       /* Primary */
-      --black: #000000;
-      --paperwork: #E6E6E1;
-      --olive: #4A5E41;
+      --black:#000000;
+      --paperwork:#E6E6E1;
+      --olive:#4A5E41;
 
       /* Secondary */
-      --gunmetal: #585C5E;
-      --sandstorm: #BBA854;
-      --fieldgreen: #3B7A57;
+      --gunmetal:#585C5E;
+      --sandstorm:#BBA854;
+      --fieldgreen:#3B7A57;
 
-      /* Accent */
-      --deepsea: #2D409F;
-      --goldstar: #E6B300;
-      --crimson: #B60000;
+      /* Accents */
+      --deepsea:#2D409F;
+      --goldstar:#E6B300;
+      --crimson:#B60000;
 
-      /* Map theme */
-      --bg: var(--black);
-      --panel: #111;
-      --text: var(--paperwork);
-      --muted: #cfcfcf;
-      --state: var(--olive);
-      --state-hover: var(--fieldgreen);
-      --stroke: var(--gunmetal);
-      --stroke-strong: var(--sandstorm);
-      --focus: var(--goldstar);
+      /* UI */
+      --bg:var(--black);
+      --panel:#111;
+      --text:var(--paperwork);
+      --muted:#cfcfcf;
+
+      --state:var(--olive);
+      --state-hover:var(--deepsea);          /* hover fill */
+      --stroke:var(--gunmetal);
+      --stroke-strong:var(--goldstar);       /* hover stroke */
+      --focus:var(--goldstar);
+      --link:var(--goldstar);
+      --link-hover:#ffd34d;
     }
 
-    body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Sofia Sans', sans-serif;
-      -webkit-font-smoothing: antialiased;
+    /* ===== Base ===== */
+    html,body{height:100%}
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:'Sofia Sans',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      -webkit-font-smoothing:antialiased;
+    }
+    a{color:var(--link);text-decoration:none}
+    a:hover{color:var(--link-hover);text-decoration:underline}
+
+    .wrap{max-width:1100px;margin:28px auto 40px;padding:0 16px}
+    h1{
+      margin:0 0 6px;
+      font-weight:800;
+      font-size:2rem;
+      letter-spacing:.2px; /* Sofia Sans (requested) */
+    }
+    p.helper{margin:0 0 16px;color:var(--muted);font-family:'Lambada',sans-serif}
+
+    .map-wrap{
+      position:relative;background:var(--panel);
+      border-radius:16px;padding:14px;
+      box-shadow:0 8px 28px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.03);
+    }
+    svg{width:100%;height:auto;display:block;border-radius:10px}
+
+    .state{
+      fill:var(--state);
+      stroke:var(--stroke);
+      stroke-width:.8;
+      cursor:pointer;
+      transition:fill .14s ease, stroke .14s ease, transform .12s ease;
+    }
+    .state:hover,.state:focus{
+      fill:var(--state-hover);
+      stroke:var(--stroke-strong);
+      outline:none;
+    }
+    .state:focus-visible{
+      filter:drop-shadow(0 0 .5px var(--focus)) drop-shadow(0 0 7px var(--focus));
     }
 
-    .wrap {
-      max-width: 1100px;
-      margin: 30px auto;
-      padding: 0 16px;
-      text-align: center;
+    .tip{
+      position:absolute;pointer-events:none;background:rgba(15,23,42,.96);
+      color:#fff;padding:6px 8px;border-radius:6px;font-size:12px;
+      transform:translate(-50%,-120%);white-space:nowrap;opacity:0;
+      transition:opacity .12s ease;border:1px solid rgba(255,255,255,.12);
     }
 
-    h1 {
-      font-family: 'Shantell Sans', sans-serif;
-      font-size: 2rem;
-      letter-spacing: 1px;
-      color: var(--goldstar);
-      margin-bottom: 8px;
-    }
+    .note{color:var(--muted);font-size:.9rem;margin-top:10px}
 
-    p.helper {
-      font-family: 'Lambada', sans-serif;
-      color: var(--muted);
-      margin-bottom: 20px;
+    /* ===== Directory lists under the map ===== */
+    .directory{
+      margin:22px 0 0;display:grid;gap:24px;
     }
-
-    .map-wrap {
-      position: relative;
-      background: var(--panel);
-      border-radius: 16px;
-      padding: 14px;
-      box-shadow: 0 0 30px rgba(230, 179, 0, 0.25);
+    .dir-section h2{
+      margin:0 0 8px;font-size:1.05rem;font-weight:700;color:var(--paperwork);
+      border-left:4px solid var(--sandstorm);padding-left:8px;
     }
-
-    svg {
-      width: 100%;
-      height: auto;
-      display: block;
-      border-radius: 10px;
+    .dir-grid{
+      display:grid;gap:8px 18px;
+      grid-template-columns:repeat(2,minmax(0,1fr));
     }
+    @media (min-width:640px){ .dir-grid{grid-template-columns:repeat(3,1fr)} }
+    @media (min-width:900px){ .dir-grid{grid-template-columns:repeat(4,1fr)} }
 
-    .state {
-      fill: var(--state);
-      stroke: var(--stroke);
-      stroke-width: 0.8;
-      cursor: pointer;
-      transition: fill 140ms ease, stroke 140ms ease, transform 120ms ease;
+    .dir-grid a{
+      padding:6px 8px;border-radius:6px;background:rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.06);
+      transition:background .12s ease,border-color .12s ease;
     }
-
-    .state:hover,
-    .state:focus {
-      fill: var(--state-hover);
-      stroke: var(--stroke-strong);
-      outline: none;
-    }
-
-    .state:focus-visible {
-      filter: drop-shadow(0 0 0.5px var(--focus)) drop-shadow(0 0 7px var(--focus));
-    }
-
-    .tip {
-      position: absolute;
-      pointer-events: none;
-      background: var(--deepsea);
-      color: #fff;
-      padding: 6px 8px;
-      border-radius: 6px;
-      font-size: 12px;
-      transform: translate(-50%, -120%);
-      white-space: nowrap;
-      opacity: 0;
-      transition: opacity 120ms ease;
-      border: 1px solid rgba(255,255,255,.15);
-    }
-
-    .note {
-      color: var(--muted);
-      font-size: 0.85rem;
-      margin-top: 10px;
-    }
-
-    .note code {
-      color: var(--sandstorm);
+    .dir-grid a:hover{
+      background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.18);
     }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <h1>Find Your State</h1>
-    <p class="helper">Click your state to open its Irreverent Warriors DonorDrive page.</p>
+    <h1>Find your state</h1>
+    <p class="helper">Find your state or OCONUS chapter to open its landing page.</p>
 
-    <div class="map-wrap" id="mapWrap">
-      <div class="tip" id="tip"></div>
+    <div class="map-wrap" id="mapWrap" aria-label="Clickable map of the United States">
+      <div class="tip" id="tip" role="status" aria-live="polite"></div>
       <svg id="usMap" viewBox="0 0 975 610" role="img" aria-labelledby="title desc">
-        <title id="title">United States Map – Clickable States</title>
-        <desc id="desc">Click a state to visit its Irreverent Warriors DonorDrive page.</desc>
+        <title id="title">United States map (50 states)</title>
+        <desc id="desc">Click a state to visit its Irreverent Warriors DonorDrive page. Keyboard: Tab then Enter/Space.</desc>
       </svg>
-      <p class="note">Links go to <code>https://irreverentwarriors.donordrive.com/&lt;statename&gt;</code></p>
+      <p class="note">Links go to <code>https://irreverentwarriors.donordrive.com/&lt;statename&gt;</code> (e.g., <code>northcarolina</code>).</p>
+    </div>
+
+    <!-- Directory lists -->
+    <div class="directory" id="directory">
+      <section class="dir-section" id="statesSection">
+        <h2>States</h2>
+        <div class="dir-grid" id="statesList"></div>
+      </section>
+      <section class="dir-section" id="oconusSection" style="display:none;">
+        <h2>OCONUS</h2>
+        <div class="dir-grid" id="oconusList"></div>
+      </section>
     </div>
   </div>
 
+  <!-- D3 + TopoJSON -->
   <script src="https://unpkg.com/d3@7"></script>
   <script src="https://unpkg.com/topojson-client@3"></script>
 
   <script>
+    // ---------- CONFIG ----------
     const BASE = "https://irreverentwarriors.donordrive.com";
     const OPEN_IN_NEW_TAB = true;
-    const slugOverrides = {};
 
-    const FIFTY_STATES = new Set([
+    // 50 US states only for the map
+    const FIFTY_STATES = [
       "Alabama","Alaska","Arizona","Arkansas","California","Colorado","Connecticut","Delaware","Florida","Georgia",
       "Hawaii","Idaho","Illinois","Indiana","Iowa","Kansas","Kentucky","Louisiana","Maine","Maryland",
       "Massachusetts","Michigan","Minnesota","Mississippi","Missouri","Montana","Nebraska","Nevada","New Hampshire","New Jersey",
       "New Mexico","New York","North Carolina","North Dakota","Ohio","Oklahoma","Oregon","Pennsylvania","Rhode Island","South Carolina",
       "South Dakota","Tennessee","Texas","Utah","Vermont","Virginia","Washington","West Virginia","Wisconsin","Wyoming"
-    ]);
+    ];
 
-    const slugify = (name) => {
-      if (slugOverrides[name]) return slugOverrides[name];
-      return name.toLowerCase().replace(/[^a-z0-9]/g, "");
-    };
+    // Directory will show these states + your OCONUS chapters below.
+    const OCONUS = [
+      // TODO: add/adjust actual OCONUS chapter names here.
+      // Examples (remove or modify as needed):
+      // "Puerto Rico", "Guam", "Okinawa", "Germany", "Italy", "United Kingdom", "Korea"
+    ];
 
-    const svg = d3.select("#usMap");
+    // no-space, no-hyphen slugs
+    const slugify = name => name.toLowerCase().replace(/&/g,"and").replace(/[^a-z0-9]/g,"");
+
     const tip = document.getElementById("tip");
     const wrap = document.getElementById("mapWrap");
-    const projection = d3.geoAlbersUsa().translate([487.5, 305]).scale(1280);
+    const svg = d3.select("#usMap");
+
+    const projection = d3.geoAlbersUsa().translate([487.5,305]).scale(1280);
     const path = d3.geoPath(projection);
 
-    function go(url) {
-      if (OPEN_IN_NEW_TAB) window.open(url, "_blank", "noopener");
+    function go(url){
+      if(OPEN_IN_NEW_TAB) window.open(url,"_blank","noopener");
       else window.location.href = url;
     }
-
-    function getOffsets(evt) {
-      if (typeof evt.offsetX === "number") return { x: evt.offsetX, y: evt.offsetY };
+    function offsets(evt){
+      if(typeof evt.offsetX === "number") return {x:evt.offsetX,y:evt.offsetY};
       const r = wrap.getBoundingClientRect();
-      return { x: evt.clientX - r.left, y: evt.clientY - r.top };
+      return {x:evt.clientX - r.left, y:evt.clientY - r.top};
     }
 
+    // Draw map
     fetch("https://unpkg.com/us-atlas@3/states-10m.json")
-      .then(r => r.json())
-      .then(us => {
-        const states = topojson.feature(us, us.objects.states).features.filter(f => FIFTY_STATES.has(f.properties.name));
+      .then(r=>r.json())
+      .then(us=>{
+        const all = topojson.feature(us, us.objects.states).features;
+        const features = all.filter(f => FIFTY_STATES.includes(f.properties.name));
 
         svg.append("g")
           .selectAll("path")
-          .data(states)
+          .data(features)
           .join("path")
-          .attr("class", "state")
-          .attr("d", path)
-          .attr("tabindex", 0)
-          .attr("role", "link")
-          .attr("aria-label", d => d.properties.name)
-          .on("click", (_, d) => go(`${BASE}/${slugify(d.properties.name)}`))
-          .on("keydown", (event, d) => {
-            if (event.key === "Enter" || event.key === " ") go(`${BASE}/${slugify(d.properties.name)}`);
+          .attr("class","state")
+          .attr("d",path)
+          .attr("tabindex",0)
+          .attr("role","link")
+          .attr("aria-label",d=>d.properties.name)
+          .on("click",(_,d)=>go(`${BASE}/${slugify(d.properties.name)}`))
+          .on("keydown",(e,d)=>{
+            if(e.key==="Enter"||e.key===" "){ e.preventDefault(); go(`${BASE}/${slugify(d.properties.name)}`); }
           })
-          .on("mousemove", (event, d) => {
-            const { x, y } = getOffsets(event);
-            tip.textContent = d.properties.name;
-            tip.style.left = x + "px";
-            tip.style.top = y + "px";
-            tip.style.opacity = 1;
+          .on("mousemove",(e,d)=>{
+            const {x,y}=offsets(e);
+            tip.textContent=d.properties.name;
+            tip.style.left=x+"px";
+            tip.style.top=y+"px";
+            tip.style.opacity=1;
           })
-          .on("mouseleave", () => tip.style.opacity = 0);
+          .on("mouseleave",()=>{ tip.style.opacity=0; });
 
-        const mesh = topojson.mesh(us, us.objects.states, (a, b) => a !== b);
+        const mesh = topojson.mesh(us, us.objects.states, (a,b)=>a!==b);
         svg.append("path")
-          .attr("fill", "none")
-          .attr("stroke", getComputedStyle(document.documentElement).getPropertyValue('--stroke-strong').trim() || "#BBA854")
-          .attr("stroke-width", 0.7)
-          .attr("pointer-events", "none")
+          .attr("fill","none")
+          .attr("stroke", getComputedStyle(document.documentElement).getPropertyValue('--sandstorm').trim() || "#BBA854")
+          .attr("stroke-width", .7)
+          .attr("pointer-events","none")
           .attr("d", path(mesh));
-      })
-      .catch(err => console.error("Failed to load map data:", err));
+      });
+
+    // Build directory lists
+    function linkItem(name){
+      const a = document.createElement("a");
+      a.textContent = name;
+      a.href = `${BASE}/${slugify(name)}`;
+      if(OPEN_IN_NEW_TAB) a.target = "_blank";
+      a.rel = "noopener";
+      return a;
+    }
+
+    const statesList = document.getElementById("statesList");
+    FIFTY_STATES.forEach(n => statesList.appendChild(linkItem(n)));
+
+    const oconusSection = document.getElementById("oconusSection");
+    const oconusList = document.getElementById("oconusList");
+    if(OCONUS.length){
+      oconusSection.style.display = "";
+      OCONUS.forEach(n => oconusList.appendChild(linkItem(n)));
+    }
   </script>
 </body>
 </html>
