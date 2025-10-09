@@ -200,7 +200,7 @@
 
       // Europe inset - off southeast coast
       const europe=insets.append("g");
-      const layoutEU={x0:840,y0:350,x1:1070,y1:550,title:"Europe"};
+      const layoutEU={x0:840,y0:375,x1:1070,y1:575,title:"Europe"};
       europe.append("rect").attr("class","inset-box").attr("x",layoutEU.x0).attr("y",layoutEU.y0)
         .attr("width",layoutEU.x1-layoutEU.x0).attr("height",layoutEU.y1-layoutEU.y0);
       europe.append("text").attr("class","inset-title").attr("x",layoutEU.x0+8).attr("y",layoutEU.y0+16).text(layoutEU.title);
