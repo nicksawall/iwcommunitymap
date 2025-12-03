@@ -72,6 +72,16 @@
       fill:var(--state-hover);
       stroke:var(--stroke-strong);
     }
+.dc-marker-group {
+  cursor: pointer;
+}
+
+.dc-star {
+  fill: var(--goldstar);
+  stroke: var(--gunmetal);
+  stroke-width: 1;
+  pointer-events: none; /* so the group handles the events */
+}
 
     .inset-box{
       fill:rgba(74,94,65,.05);
@@ -203,6 +213,45 @@ const slugForName = s =>
 
       const mesh=topojson.mesh(us,us.objects.states,(a,b)=>a!==b);
       main.append("path").attr("fill","none").attr("stroke","#BBA854").attr("stroke-width",.7).attr("d",pathUS(mesh));
+      // DC star marker for better click target
+      const dcFeature = states.find(f => f.properties && f.properties.name === "District of Columbia");
+      if (dcFeature) {
+        const [cx, cy] = pathUS.centroid(dcFeature);
+
+        const dcGroup = main.append("g")
+          .attr("class", "dc-marker-group")
+          .attr("transform", `translate(${cx},${cy})`)
+          .attr("tabindex", 0)
+          .attr("role", "link")
+          .attr("aria-label", "Washington, DC")
+          .on("click", () => go(`${BASE}/${slugForName("District of Columbia")}`))
+          .on("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              go(`${BASE}/${slugForName("District of Columbia")}`);
+            }
+          })
+          .on("mousemove", (e) => {
+            const { x, y } = offsets(e);
+            tip.textContent = "Washington, DC";
+            tip.style.left = x + "px";
+            tip.style.top = y + "px";
+            tip.style.opacity = 1;
+          })
+          .on("mouseleave", () => {
+            tip.style.opacity = 0;
+          });
+
+        // invisible hit area to make it easier to click
+        dcGroup.append("circle")
+          .attr("r", 10)
+          .attr("fill", "transparent");
+
+        // gold star icon
+        dcGroup.append("path")
+          .attr("class", "dc-star")
+          .attr("d", "M0,-8 L2.35,-2.5 7.6,-2.5 3.1,1 4.7,6.5 0,3.5 -4.7,6.5 -3.1,1 -7.6,-2.5 -2.35,-2.5 Z");
+      }
 
       // Europe inset - off southeast coast
       const europe=insets.append("g");
