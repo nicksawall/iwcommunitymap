@@ -10,6 +10,7 @@ Background uses a light/white/olive canvas (configurable).
 
 Links open chapter pages (same-tab by default).
 
+Star for DC
 
 Europe (France) call-out sits off the Florida/GA/SC coast and is a bit larger for readability.
 
