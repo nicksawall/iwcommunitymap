@@ -174,9 +174,15 @@
     "Hawaii","Idaho","Illinois","Indiana","Iowa","Kansas","Kentucky","Louisiana","Maine","Maryland","Massachusetts","Michigan",
     "Minnesota","Mississippi","Missouri","Montana","Nebraska","Nevada","New Hampshire","New Jersey","New Mexico","New York",
     "North Carolina","North Dakota","Ohio","Oklahoma","Oregon","Pennsylvania","Rhode Island","South Carolina","South Dakota",
-    "Tennessee","Texas","Utah","Vermont","Virginia","Washington","West Virginia","Wisconsin","Wyoming"];
+    "Tennessee","Texas","Utah","Vermont","Virginia","Washington","District of Columbia","West Virginia","Wisconsin","Wyoming"];
 
-    const slugify=s=>s.toLowerCase().replace(/&/g,"and").replace(/[^a-z0-9]/g,"");
+    const SLUG_OVERRIDES = {
+  "District of Columbia": "dc"
+};
+
+const slugForName = s =>
+  SLUG_OVERRIDES[s] ||
+  s.toLowerCase().replace(/&/g,"and").replace(/[^a-z0-9]/g,"");
     const tip=document.getElementById("tip"),wrap=document.getElementById("mapWrap");
     const svg=d3.select("#usMap"),main=svg.append("g"),insets=svg.append("g");
     const go=url=>OPEN_IN_NEW_TAB?window.open(url,"_blank","noopener"):window.location.href=url;
@@ -191,7 +197,7 @@
       const states=topojson.feature(us,us.objects.states).features.filter(f=>FIFTY_STATES.includes(f.properties.name));
       main.selectAll("path").data(states).join("path")
         .attr("class","state").attr("d",pathUS)
-        .on("click",(_,d)=>go(`${BASE}/${slugify(d.properties.name)}`))
+        .on("click",(_,d)=>go(`${BASE}/${slugForName(d.properties.name)}`))
         .on("mousemove",(e,d)=>{const {x,y}=offsets(e);tip.textContent=d.properties.name;tip.style.left=x+"px";tip.style.top=y+"px";tip.style.opacity=1;})
         .on("mouseleave",()=>tip.style.opacity=0);
 
@@ -225,7 +231,7 @@
       const projEU=d3.geoMercator().fitExtent([[layoutEU.x0+8,layoutEU.y0+22],[layoutEU.x1-8,layoutEU.y1-8]],fc);
       const pathEU=d3.geoPath(projEU);
       europe.selectAll("path").data(targets).join("path").attr("class","inset-geom").attr("d",d=>pathEU({type:"Feature",geometry:d.geom}))
-        .on("click",(_,d)=>go(`${BASE}/${slugify(d.name)}`))
+        .on("click",(_,d)=>go(`${BASE}/${slugForName(d.name)}`))
         .on("mousemove",(e,d)=>{const {x,y}=offsets(e);tip.textContent=d.name;tip.style.left=x+"px";tip.style.top=y+"px";tip.style.opacity=1;})
         .on("mouseleave",()=>tip.style.opacity=0);
 
@@ -248,7 +254,7 @@
 
       // Directory lists
       const statesList=document.getElementById("statesList");
-      FIFTY_STATES.forEach(n=>{const a=document.createElement("a");a.textContent=n;a.href=`${BASE}/${slugify(n)}`;if(OPEN_IN_NEW_TAB)a.target="_blank";a.rel="noopener";statesList.appendChild(a);});
+      FIFTY_STATES.forEach(n=>{const a=document.createElement("a");a.textContent=n;a.href=`${BASE}/${slugForName(n)}`;if(OPEN_IN_NEW_TAB)a.target="_blank";a.rel="noopener";statesList.appendChild(a);});
       const oconusList=document.getElementById("oconusList");
       OCONUS.forEach(({name,slug})=>{const a=document.createElement("a");a.textContent=name;a.href=`${BASE}/${slug}`;if(OPEN_IN_NEW_TAB)a.target="_blank";a.rel="noopener";oconusList.appendChild(a);});
     });
